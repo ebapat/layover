@@ -1,4 +1,4 @@
-# Trip Decision Engine
+# Layover
 
 A Java command-line tool that ranks my travel bucket list using airline
 route data and scoring weights I can adjust.
