@@ -56,7 +56,7 @@ public class Config {
         }
         try {
             double value = Double.parseDouble(text.trim());
-            return value >= 0 ? value : fallback;
+            return Double.isFinite(value) && value >= 0 ? value : fallback;
         } catch (NumberFormatException e) {
             return fallback;
         }
