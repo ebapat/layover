@@ -6,10 +6,12 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-/** Settings stored in config.properties: home airport and scoring weights. */
+/** Settings stored in config.properties: home airport, scoring weights, and cost/time estimates. */
 public class Config {
     public static final String HOME_AIRPORT = "home_airport";
 
@@ -42,18 +44,35 @@ public class Config {
         properties.setProperty(HOME_AIRPORT, airportCode.trim().toUpperCase());
     }
 
-    public double getWeight(String name) {
-        String text = properties.getProperty("weight." + name);
+    /**
+     * Reads a number setting, using the fallback if it is missing or not a number.
+     * Negative values are rejected too: a negative weight would reward the wrong
+     * thing and a negative price makes no sense.
+     */
+    public double getSetting(String key, double fallback) {
+        String text = properties.getProperty(key);
         if (text == null) {
-            return DEFAULT_WEIGHT;
+            return fallback;
         }
         try {
             double value = Double.parseDouble(text.trim());
-            // A negative weight would reward the wrong thing, so treat it as bad input.
-            return value >= 0 ? value : DEFAULT_WEIGHT;
+            return value >= 0 ? value : fallback;
         } catch (NumberFormatException e) {
-            return DEFAULT_WEIGHT;
+            return fallback;
         }
+    }
+
+    public double getWeight(String name) {
+        return getSetting("weight." + name, DEFAULT_WEIGHT);
+    }
+
+    /** All five weights in a fixed order, ready to hand to the scorer. */
+    public Map<String, Double> getWeights() {
+        Map<String, Double> weights = new LinkedHashMap<>();
+        for (String name : WEIGHT_NAMES) {
+            weights.put(name, getWeight(name));
+        }
+        return weights;
     }
 
     public void setWeight(String name, double value) {
